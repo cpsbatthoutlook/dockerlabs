@@ -1,0 +1,6 @@
+**/.vagrant
+**/workarea
+**/id_rsa
+**/*.box
+**/*.log
+**/.git

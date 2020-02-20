@@ -1,0 +1,65 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+$XXscript = <<SCRIPT
+sudo mv hosts /etc/hosts
+chmod 0600 /home/vagrant/.ssh/id_rsa
+usermod -a -G vagrant ubuntu
+cp -Rvf /home/vagrant/.ssh /home/ubuntu
+chown -Rvf ubuntu /home/ubuntu
+yum -y update
+yum -y install python-minimal python-apt ansible
+yum -y install screen curl wget sysstat tcpdump
+SCRIPT
+
+
+$script = <<SCRIPT
+cat ansible-hosts >> /etc/hosts
+cat ssh-publickey >> /home/vagrant/.ssh/authorized_keys
+SCRIPT
+
+VAGRANTFILE_API_VERSION = "2"
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+        config.ssh.insert_key = false
+        config.vm.provider :virtualbox do |vb|
+        vb.customize ["modifyvm", :id, "--memory", "256"]
+        config.vm.provision "shell", inline: $script
+        #config.vm.provision "shell", inline: $XXscript
+    end
+
+    # Application server 1.
+    config.vm.define "master" do |app|
+        app.vm.hostname = "ansible-master"
+        app.vm.box = "ansibleLabmaster1.box"
+        #app.vm.box = "geerlingguy/centos7"
+        app.vm.network :private_network, ip: "192.168.56.100"
+        app.vm.synced_folder "./kube/", "/kube"
+    end
+
+
+    # Application server 1.
+    config.vm.define "app1" do |app|
+        app.vm.hostname = "orc-app1.dev"
+        app.vm.box = "ansibleLabmaster1.box"
+        #app.vm.box = "geerlingguy/centos7"
+        app.vm.network :private_network, ip: "192.168.56.104"
+    end
+
+    # Application server 2.
+    config.vm.define "app2" do |app|
+        app.vm.hostname = "orc-app2.dev"
+        #app.vm.box = "geerlingguy/centos7"
+        app.vm.box = "ansibleLabmaster1.box"
+        app.vm.network :private_network, ip: "192.168.56.105"
+    end
+
+    # Database server.
+    config.vm.define "db" do |db|
+        db.vm.hostname = "orc-db.dev"
+        #db.vm.box = "geerlingguy/centos7"
+        db.vm.box = "ansibleLabmaster1.box"
+        db.vm.network :private_network, ip: "192.168.56.106"
+    end
+ end
+

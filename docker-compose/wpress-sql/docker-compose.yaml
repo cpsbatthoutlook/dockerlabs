@@ -1,0 +1,60 @@
+version: '2.4'
+#Docker engine Docker version 1.13.1, build 4ef4b30/1.13.1
+#https://hub.docker.com/_/mysql
+services:
+  mysqldb: 
+    image: "mysql:5.7"
+    domainname: "pragra.local"
+    hostname: "mysqldb"
+    volumes:
+    - db_data: /var/lib/mysql
+    restart: always
+    ports:
+     - "13306:3306"
+    networks:  backend
+    environment: 
+      MYSQL_ROOT_PASSWORD:'running'
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: wordpress
+      MYSQL_PASSWORD: wordpress
+      MYSQL_ALLOW_EMPTY_PASSWORD: false
+
+  wordpress:  #https://hub.docker.com/_/wordpress
+    image: "php7.2-apache"
+    depends_on:
+    - mysql_db
+    networks:
+    - backend    
+    # - custom:
+    #     ipv4_address: 192.168.61.10
+    domainname: pragra.local
+    hostname: wordpress
+    ports:
+    - 18080:80
+    volumes:
+    - wordpress: /var/www/html
+    restart: always
+    environment: 
+      WORDPRESS_DB_HOST: mysqldb
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: wordpress
+      WORDPRESS_DB_NAME: wordpress
+
+networks:
+  - backend
+  - custom:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.61.0/24
+
+volumes:
+  db_data: {}
+  wordpress: {}
+
+
+##Reference
+##docker-compose up -d
+## https://docs.docker.com/compose/wordpress/
+## https://docs.docker.com/compose/compose-file/ 

@@ -1,0 +1,33 @@
+version: '3.3'
+
+services:
+ app1:
+   image: nginx:1.17.8-alpine
+   networks:
+    - backend
+   restart: always
+   volumes:
+    - ./nginx.conf.app:/etc/nginx/conf.d/default.conf:ro
+    - ./html:/usr/share/nginx/html:ro
+
+ lb:
+   depends_on:
+    -  app1
+   image: nginx:1.17.8-alpine
+   networks:
+    - frontend
+   ports:
+    - "8080:80"
+   restart: always
+   #volumes:
+   #- /root/ansilabs/nginx-ha/nginx.conf.lb:/etc/nginx/conf.d/default.conf:ro
+   
+
+networks:
+   backend:
+   frontend:
+
+
+volumes:
+  app1_vol: {}
+
